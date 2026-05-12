@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Coktas PDPB Semester II – Kelompok A | KPU Kota Probolinggo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"></script>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;background:#F3F4F6;margin:0}
+select,input,textarea,button{font-family:inherit}textarea{resize:vertical}
+.cn{max-width:1152px;margin:0 auto;padding-left:16px;padding-right:16px}
+.s3{display:flex;flex-direction:column;gap:12px}.s4{display:flex;flex-direction:column;gap:16px}.s5{display:flex;flex-direction:column;gap:20px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.g2s{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3s{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sp2{grid-column:span 2}
+.inp{border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;width:100%;background:#fff}
+.inp:focus{border-color:#FCA5A5;box-shadow:0 0 0 3px rgba(252,165,165,.2)}
+.tabbar{background:#fff;border-bottom:1px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,.06);position:sticky;top:0;z-index:100}
+@media(max-width:768px){.g3,.g4{grid-template-columns:1fr 1fr}.g3s{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.g2,.g3,.g4,.g2s,.g3s{grid-template-columns:1fr}.sp2{grid-column:span 1}}
+@media print{.no-print{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body><div id="root"></div>
+<script>
+const {useState,useMemo,useEffect,useCallback,useRef}=React;
+const html=htm.bind(React.createElement);
+const DRIVE_URL="https://drive.google.com/drive/folders/19Dk6jnYuGLJRsvoGUnrZohWwhZvdgSRc?usp=sharing";
+const INP="inp";
+const CARD={background:"#fff",borderRadius:12,padding:20,border:"1px solid #F3F4F6",boxShadow:"0 1px 4px rgba(0,0,0,.07)"};
+
+/* ── KONSTANTA ── */
+const SC={"Belum Dimulai":{bg:"#F3F4F6",text:"#4B5563",dot:"#9CA3AF",bd:"#D1D5DB"},"Sedang Dikerjakan":{bg:"#FFFBEB",text:"#B45309",dot:"#F59E0B",bd:"#FDE68A"},"Menunggu Review":{bg:"#EFF6FF",text:"#1D4ED8",dot:"#3B82F6",bd:"#BFDBFE"},"Revisi":{bg:"#FEF2F2",text:"#DC2626",dot:"#EF4444",bd:"#FECACA"},"Selesai":{bg:"#F0FDF4",text:"#16A34A",dot:"#22C55E",bd:"#BBF7D0"},"Tertunda":{bg:"#F5F3FF",text:"#7C3AED",dot:"#A855F7",bd:"#DDD6FE"}};
+const KC={"Non Aktif":"#6B7280","Disabilitas (Tuna Netra)":"#D97706","Disabilitas (Mental)":"#D97706","Pemilih di Luar Negeri":"#2563EB","Potensi Baru":"#16A34A","TNI Baru":"#7C3AED"};
+const KB={"Non Aktif":"#F3F4F6","Disabilitas (Tuna Netra)":"#FFFBEB","Disabilitas (Mental)":"#FFFBEB","Pemilih di Luar Negeri":"#EFF6FF","Potensi Baru":"#F0FDF4","TNI Baru":"#F5F3FF"};
+const KET_OPTS=["Non Aktif","Disabilitas (Tuna Netra)","Disabilitas (Mental)","Pemilih di Luar Negeri","Potensi Baru","TNI Baru"];
+const TC={"TIM 1":"#059669","TIM 2":"#1D4ED8","TIM 3":"#991B1B"};
+const TB={"TIM 1":"#ECFDF5","TIM 2":"#EFF6FF","TIM 3":"#FEF2F2"};
+const KELS=["Sukoharjo","Jati","Mangunharjo","Mayangan","Sukabumi"];
+const KH={"Jati":"Selasa 11 Mei","Sukoharjo":"Selasa 11 Mei","Mangunharjo":"Rabu 12 Mei","Mayangan":"Rabu 12 Mei","Sukabumi":"Rabu 12 Mei"};
+const TP={"TIM 1":["Rudi Hartono Rahap","Abdul Rasyid"],"TIM 2":["Qori Mughni Kumara","Yuniati"],"TIM 3":["Ilmiyah","Ratna Tadzika","Imroatu"]};
+const ANGGOTA=[
+  {id:1,nama:"Rudi Hartono Rahap",jabatan:"Anggota Tim",tim:"TIM 1",inisial:"RH",color:"#059669"},
+  {id:2,nama:"Abdul Rasyid",jabatan:"Anggota Tim",tim:"TIM 1",inisial:"AR",color:"#D97706"},
+  {id:3,nama:"Qori Mughni Kumara",jabatan:"Mentor/Anggota",tim:"TIM 2",inisial:"QM",color:"#1D4ED8"},
+  {id:4,nama:"Yuniati",jabatan:"Anggota Tim",tim:"TIM 2",inisial:"YN",color:"#BE185D"},
+  {id:5,nama:"Ilmiyah",jabatan:"Anggota Tim",tim:"TIM 3",inisial:"IL",color:"#991B1B"},
+  {id:6,nama:"Ratna Tadzika",jabatan:"Anggota Tim",tim:"TIM 3",inisial:"RT",color:"#7C3AED"},
+  {id:7,nama:"Imroatu",jabatan:"Anggota Tim",tim:"TIM 3",inisial:"IM",color:"#0891B2"},
+];
+
+/* ── DATA ── */
+const mkP=(id,tim,kel,nik,nama,ttl,kawin,jk,alamat,ektp,ket,petunjuk,cluster)=>({id,tim,kel,nik,nama,ttl,kawin,jk,alamat,ektp,ket,petunjuk,cluster,done:false,coktasByPetugas:"",coktasWaktu:"",coktasCatatan:""});
+const INIT_P=[
+  mkP(1,"TIM 1","Jati","3574034107650013","Sulifa","Probolinggo, 01-07-1965","Sudah","P","Jl. Mayjend Haryono XI RT 009/004","Sudah","Potensi Baru","Satu jalan sama kelurahan Jati",""),
+  mkP(2,"TIM 1","Jati","3574033008820005","Adi Suyanto","Lumajang, 30-08-1982","Sudah","L","Jl. Letjend S.Parman RT 004/002","Sudah","Disabilitas (Mental)","",""),
+  mkP(3,"TIM 1","Sukabumi","3574032907960001","Nikkolai Ali Akbar Velayati","Probolinggo, 29-07-1996","Belum","L","Jl. MH. Thamrin 4, RT 003/004","Sudah","Pemilih di Luar Negeri","Dekat Airlangga",""),
+  mkP(4,"TIM 1","Sukabumi","3574034108970003","Listiawati","Tg.Balai Karimun, 01-08-1997","Belum","P","Jl. Nusa Indah 37, RT 006/007","Sudah","Pemilih di Luar Negeri","RSUD ke Barat",""),
+  mkP(5,"TIM 1","Sukabumi","3574032411750002","Bayu Wibowo","Probolinggo, 24-11-1975","Belum","L","Jl. Anggrek Rel 16, RT 005/007","Belum","Disabilitas (Mental)","RS Amanah ke utara, setelah rel ke barat",""),
+  mkP(6,"TIM 2","Jati","3574031206050002","Achmad Haris Firmansyah","Probolinggo, 12-06-2005","Belum","L","Jl. Sunan Kalijogo 45, RT 002/001","Sudah","Disabilitas (Tuna Netra)","Jalan Baratnya Cong Motor",""),
+  mkP(7,"TIM 2","Jati","3574035706000002","Maharani Saskia Putri","Probolinggo, 17-06-2000","Belum","P","Jl. Sunan Kalijaga RT 005/001","Belum","Non Aktif","","green"),
+  mkP(8,"TIM 2","Jati","3574034501750002","Eni Diyanti","Probolinggo, 05-01-1975","Sudah","P","Jl. Sunan Kalijaga RT 005/001","Belum","Non Aktif","","green"),
+  mkP(9,"TIM 2","Sukoharjo","3574044302820002","Sumarmi","Probolinggo, 03-02-1982","Sudah","P","Jl. KH. Hasan GG. Hijrah RT 004/003","Belum","Non Aktif","Gang kiri pertama setelah lampu merah menara air","green"),
+  mkP(10,"TIM 2","Sukoharjo","3574047105980001","Himatul Aliah","Probolinggo, 31-05-1998","Belum","P","Jl. KH. Hasan GG. Hijrah RT 004/003","Belum","Non Aktif","","green"),
+  mkP(11,"TIM 2","Sukoharjo","3574042105010001","Jafar Sodiq","Probolinggo, 21-05-2001","Belum","L","Jl. KH. Hasan GG. Hijrah RT 004/003","Belum","Non Aktif","","green"),
+  mkP(12,"TIM 2","Mayangan","3574035505870001","Syamsiati","Probolinggo, 15-05-1987","Sudah","P","Jl. Ikan Banyar RT 004/003","Sudah","Pemilih di Luar Negeri","Kelurahan ke timur, ke utara",""),
+  mkP(13,"TIM 2","Mayangan","3574041911030003","Tengku Novnad Gustri Ramadhan","Probolinggo, 19-11-2003","Belum","L","Jl. Ikan Lumba-lumba No.1 RT 004/002","Sudah","TNI Baru","",""),
+  mkP(14,"TIM 3","Jati","3574035805930003","Elizabeth Nathania Witanto","Surabaya, 18-05-1993","Belum","P","Jl. Panglima Sudirman 214, RT 003/005","Sudah","Pemilih di Luar Negeri","Dekat King",""),
+  mkP(15,"TIM 3","Jati","6109050504870002","Susanto","Sungai Ayak, 05-04-1987","Belum","L","Jl. Pahlawan No.98 RT 005/005","Sudah","Pemilih di Luar Negeri","",""),
+  mkP(16,"TIM 3","Mangunharjo","35740360009790006","Anny Rosaria Tiandra","Probolinggo, 20-09-1979","Belum","P","Jl. Letjend Suprapto 108, RT 005/013","Sudah","Pemilih di Luar Negeri","Gor Tri Darma ke selatan",""),
+  mkP(17,"TIM 3","Mangunharjo","3574036201630001","Nanni Purtiningdijah","Pasuruan, 22-01-1963","Sudah","P","Jl. Dr. Sutomo 185, RT 004/012","Sudah","Pemilih di Luar Negeri","Lampu Merah A Yani ke selatan",""),
+  mkP(18,"TIM 3","Mangunharjo","3574017108970001","Windimukti Ningtyas","Probolinggo, 31-08-1997","Belum","P","Jl. Trunjoyo GG 3 No.16B RT 002/011","Sudah","Pemilih di Luar Negeri","Gang dekat Lapas",""),
+  mkP(19,"TIM 3","Mangunharjo","3172025609000007","Sella Fahmi","Jakarta, 16-09-2000","Sudah","P","Jl. Serma Abdurrahman GG Kusuma Bangsa No.10 RT 002/006","Sudah","Non Aktif","Gang Utaranya Masjid Al-A'Raaf","pink"),
+  mkP(20,"TIM 3","Mangunharjo","3515060903940003","Dion Rizki Ramadhan","Situbondo, 09-03-1994","Sudah","L","Jl. Serma Abdurrahman GG Kusuma Bangsa No.10 RT 002/006","Sudah","Non Aktif","","pink"),
+];
+const INIT_KEG=[
+  {id:1,tim:"TIM 1",pic:"Rudi Hartono Rahap, Abdul Rasyid",hari:"Selasa-Rabu, 11-12 Mei 2026",status:"Sedang Dikerjakan",catatan:"",prioritas:"Tinggi",updated:"11 Mei 2026, 08.30",ket:"Kel. Jati (Jl Mayjend + Letjend S.Parman) - Kel. Sukabumi"},
+  {id:2,tim:"TIM 2",pic:"Qori Mughni Kumara, Yuniati",hari:"Selasa-Rabu, 11-12 Mei 2026",status:"Sedang Dikerjakan",catatan:"",prioritas:"Tinggi",updated:"11 Mei 2026, 08.30",ket:"Kel. Jati (Sunan Kalijogo/Kalijaga) - Kel. Sukoharjo - Kel. Mayangan"},
+  {id:3,tim:"TIM 3",pic:"Ilmiyah, Ratna Tadzika, Imroatu",hari:"Selasa-Rabu, 11-12 Mei 2026",status:"Belum Dimulai",catatan:"",prioritas:"Tinggi",updated:"11 Mei 2026, 08.00",ket:"Kel. Jati (Jl P.Sudirman + Pahlawan) - Kel. Mangunharjo"},
+];
+const INIT_DOK=[
+  {id:1,nama:"Berita Acara Coklidasi",link:"",catatan:"Template BA per kelurahan"},
+  {id:2,nama:"Form Data Pemilih",link:"",catatan:"Form pengisian data hasil coktas"},
+  {id:3,nama:"Link Lainnya",link:"",catatan:"Tambahkan link dokumen pendukung"},
+];
+const INIT_LOG=[
+  {id:1,time:"11 Mei 2026, 08.00",user:"Sistem",icon:"🚀",action:"Dashboard diinisialisasi",detail:"Data 20 pemilih - 3 Tim - 5 Kelurahan"},
+  {id:2,time:"11 Mei 2026, 08.30",user:"Admin",icon:"📋",action:"Status diperbarui",detail:"TIM 1 & TIM 2 - Sedang Dikerjakan"},
+];
+const EMPTY_P={tim:"TIM 1",kel:"Jati",nik:"",nama:"",ttl:"",kawin:"Belum",jk:"L",alamat:"",ektp:"Belum",ket:"Non Aktif",petunjuk:"",cluster:"",done:false,coktasByPetugas:"",coktasWaktu:"",coktasCatatan:""};
+
+/* ── HELPERS (dipanggil sebagai fungsi, bukan komponen React) ── */
+const nowStr=()=>{const d=new Date();return d.getDate()+" Mei "+d.getFullYear()+", "+String(d.getHours()).padStart(2,"0")+"."+String(d.getMinutes()).padStart(2,"0")+" WIB";};
+const mapsUrl=a=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a+", Kota Probolinggo, Jawa Timur");
+const barColor=p=>p===100?"#16A34A":p>0?"#F59E0B":"#E5E7EB";
+const clBg=c=>c==="green"?"#F0FDF4":c==="pink"?"#FDF2F8":"transparent";
+const clBd=c=>c==="green"?"3px solid #4ADE80":c==="pink"?"3px solid #F472B6":"none";
+
+// Fungsi helper rendering - dipanggil sebagai ${fn()} bukan <${fn}/>
+const pBar=(pct,color,h)=>{
+  const height=h||4;
+  return html`<div style=${{width:"100%",background:"#F3F4F6",borderRadius:999,height:height,overflow:"hidden"}}><div style=${{width:pct+"%",background:color,height:"100%",borderRadius:999,transition:"width .6s"}}/></div>`;
+};
+const sBadge=s=>{
+  const c=SC[s]||SC["Belum Dimulai"];
+  return html`<span style=${{display:"inline-flex",alignItems:"center",gap:4,padding:"2px 8px",borderRadius:999,fontSize:11,fontWeight:500,background:c.bg,color:c.text,border:"1px solid "+c.bd}}><span style=${{width:6,height:6,borderRadius:"50%",background:c.dot,display:"inline-block"}}/>${s}</span>`;
+};
+const tBadge=t=>html`<span style=${{background:TC[t],color:"#fff",fontWeight:700,fontSize:11,padding:"2px 8px",borderRadius:999}}>${t}</span>`;
+const ketBadge=k=>html`<span style=${{background:KB[k]||"#F3F4F6",color:KC[k]||"#6B7280",fontSize:10,padding:"2px 7px",borderRadius:999,fontWeight:500,whiteSpace:"nowrap"}}>${k}</span>`;
+const mapsBtn=alamat=>html`<a href=${mapsUrl(alamat)} target="_blank" rel="noreferrer" style=${{fontSize:10,color:"#2563EB",background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:4,padding:"1px 5px",textDecoration:"none",marginLeft:4,flexShrink:0}}>Maps</a>`;
+const coktasInfoView=(p,compact)=>{
+  if(!p||!p.done||!p.coktasByPetugas)return null;
+  if(compact){
+    return html`<div style=${{fontSize:10,marginTop:4,padding:"4px 6px",background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:6}}>
+      <span style=${{color:"#16A34A",fontWeight:600}}>${"Oleh: "+p.coktasByPetugas}</span>
+      <span style=${{color:"#9CA3AF",marginLeft:4}}>${"- "+p.coktasWaktu}</span>
+      ${p.coktasCatatan?html`<div style=${{color:"#374151",marginTop:2,fontStyle:"italic"}}>${'"'+p.coktasCatatan+'"'}</div>`:null}
+    </div>`;
+  }
+  return html`<div style=${{marginTop:6,padding:"8px 10px",background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:8}}>
+    <div style=${{fontSize:11,fontWeight:700,color:"#16A34A"}}>${"Dicoktas oleh: "+p.coktasByPetugas}</div>
+    <div style=${{fontSize:10,color:"#6B7280",marginTop:2}}>${p.coktasWaktu}</div>
+    ${p.coktasCatatan?html`<div style=${{fontSize:11,color:"#374151",marginTop:4,padding:"5px 8px",background:"#fff",borderRadius:6,border:"1px solid #D1FAE5"}}>${p.coktasCatatan}</div>`:null}
+  </div>`;
+};
+const donutChart=(done,total)=>{
+  const pct=total?done/total:0;
+  const r=52,cx=88,cy=80,circ=2*Math.PI*r;
+  const da=(pct*circ)+" "+(circ-pct*circ);
+  const pctTxt=Math.round(pct*100)+"%";
+  const cntTxt=done+"/"+total+" orang";
+  return html`<svg width="176" height="160" viewBox="0 0 176 160">
+    <circle cx=${cx} cy=${cy} r=${r} fill="none" stroke="#FEE2E2" strokeWidth="18"/>
+    <circle cx=${cx} cy=${cy} r=${r} fill="none" stroke="#16A34A" strokeWidth="18" strokeDasharray=${da} strokeDashoffset=${circ/4} strokeLinecap="round"/>
+    <text x=${cx} y=${cy-7} textAnchor="middle" fontSize="20" fontWeight="700" fill="#111827">${pctTxt}</text>
+    <text x=${cx} y=${cy+12} textAnchor="middle" fontSize="10" fill="#6B7280">${cntTxt}</text>
+    <text x=${cx} y=${cy+27} textAnchor="middle" fontSize="9" fill="#9CA3AF">dicoktas</text>
+  </svg>`;
+};
+
+/* ── KOMPONEN REACT (punya state, harus dipanggil sebagai <${Comp}/>) ── */
+function Modal({title,onClose,children}){
+  return html`<div style=${{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+    <div style=${{background:"#fff",borderRadius:16,width:"100%",maxWidth:540,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,.3)"}}>
+      <div style=${{background:"linear-gradient(135deg,#7F1D1D,#991B1B)",padding:"14px 20px",borderRadius:"16px 16px 0 0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <span style=${{fontWeight:700,color:"#fff",fontSize:15}}>${title}</span>
+        <button onClick=${onClose} style=${{background:"rgba(255,255,255,.2)",border:"none",borderRadius:6,width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16}}>x</button>
+      </div>
+      <div style=${{padding:20}}>${children}</div>
+    </div>
+  </div>`;
+}
+
+function CoktasModal({p,onConfirm,onCancel}){
+  const [petugas,setPetugas]=useState((TP[p.tim]||[])[0]||"");
+  const [catatan,setCatatan]=useState("");
+  const ok=()=>{
+    if(!petugas.trim()){alert("Nama petugas wajib diisi!");return;}
+    if(!catatan.trim()){alert("Catatan wajib diisi!");return;}
+    onConfirm(p,petugas,catatan);
+  };
+  const opts=(TP[p.tim]||[]);
+  return html`<${Modal} title="Konfirmasi Coktas" onClose=${onCancel}>
+    <div style=${{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:10,padding:14,marginBottom:16}}>
+      <div style=${{fontWeight:700,fontSize:15,color:"#166534"}}>${p.nama}</div>
+      <div style=${{fontSize:12,color:"#6B7280",marginTop:3}}>${p.nik+" - "+p.kel}</div>
+      <div style=${{fontSize:12,color:"#6B7280",marginTop:3}}>📍 ${p.alamat}</div>
+      ${p.petunjuk?html`<div style=${{marginTop:6,fontSize:11,color:"#92400E",background:"#FFFBEB",borderRadius:4,padding:"2px 8px",display:"inline-block"}}>📌 ${p.petunjuk}</div>`:null}
+    </div>
+    <div style=${{marginBottom:14}}>
+      <label style=${{fontSize:12,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Nama Petugas Coktas *</label>
+      <select value=${petugas} onChange=${e=>setPetugas(e.target.value)} class=${INP}>
+        ${opts.map(o=>html`<option key=${o} value=${o}>${o}</option>`)}
+        <option value="Lainnya">Lainnya (isi manual)</option>
+      </select>
+      ${petugas==="Lainnya"?html`<input onChange=${e=>setPetugas(e.target.value)} placeholder="Ketik nama petugas..." class=${INP} style=${{marginTop:6}}/>`:null}
+    </div>
+    <div style=${{marginBottom:18}}>
+      <label style=${{fontSize:12,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Catatan Hasil Coktas *</label>
+      <textarea value=${catatan} onChange=${e=>setCatatan(e.target.value)} rows="3" placeholder="Contoh: Pemilih hadir, data sesuai DPT." class=${INP}/>
+    </div>
+    <div style=${{display:"flex",gap:10}}>
+      <button onClick=${ok} style=${{flex:1,background:"#16A34A",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontWeight:700,cursor:"pointer",fontSize:14}}>Konfirmasi Coktas</button>
+      <button onClick=${onCancel} style=${{padding:"10px 18px",border:"1px solid #E5E7EB",borderRadius:10,cursor:"pointer",background:"#fff",color:"#6B7280"}}>Batal</button>
+    </div>
+  </${Modal}>`;
+}
+
+function KegForm({keg,onSave,onCancel}){
+  const [f,setF]=useState({pic:keg.pic,hari:keg.hari,status:keg.status,prioritas:keg.prioritas,catatan:keg.catatan||"",ket:keg.ket});
+  const scKeys=Object.keys(SC);
+  return html`<div class="s4">
+    <p style=${{fontWeight:700,fontSize:14,margin:0}}>Edit ${keg.tim}</p>
+    <div class="g2s">
+      <div class="sp2"><label style=${{display:"block",fontSize:11,fontWeight:600,color:"#6B7280",marginBottom:4}}>PIC</label><input value=${f.pic} onChange=${e=>setF({...f,pic:e.target.value})} class=${INP}/></div>
+      <div class="sp2"><label style=${{display:"block",fontSize:11,fontWeight:600,color:"#6B7280",marginBottom:4}}>Keterangan Cakupan</label><input value=${f.ket} onChange=${e=>setF({...f,ket:e.target.value})} class=${INP}/></div>
+      <div><label style=${{display:"block",fontSize:11,fontWeight:600,color:"#6B7280",marginBottom:4}}>Status</label>
+        <select value=${f.status} onChange=${e=>setF({...f,status:e.target.value})} class=${INP}>
+          ${scKeys.map(s=>html`<option key=${s} value=${s}>${s}</option>`)}
+        </select></div>
+      <div><label style=${{display:"block",fontSize:11,fontWeight:600,color:"#6B7280",marginBottom:4}}>Prioritas</label>
+        <select value=${f.prioritas} onChange=${e=>setF({...f,prioritas:e.target.value})} class=${INP}>
+          <option>Tinggi</option><option>Sedang</option><option>Rendah</option>
+        </select></div>
+      <div class="sp2"><label style=${{display:"block",fontSize:11,fontWeight:600,color:"#6B7280",marginBottom:4}}>Catatan Kendala</label><input value=${f.catatan} onChange=${e=>setF({...f,catatan:e.target.value})} placeholder="Opsional..." class=${INP}/></div>
+    </div>
+    <div style=${{display:"flex",gap:8}}>
+      <button onClick=${()=>onSave(f)} style=${{background:"#991B1B",color:"#fff",border:"none",borderRadius:8,padding:"8px 20px",fontWeight:600,cursor:"pointer"}}>Simpan</button>
+      <button onClick=${onCancel} style=${{background:"none",border:"1px solid #E5E7EB",borderRadius:8,padding:"8px 14px",cursor:"pointer",color:"#6B7280"}}>Batal</button>
+    </div>
+  </div>`;
+}
+
+/* KegCard - komponen untuk monitoring card (menghindari template terlalu dalam) */
+function KegCard({k,pemilih,canEdit,exp,setExp,editKeg,setEditKeg,updateStatus,saveKeg,handleToggle}){
+  const byKel=KELS.map(kel=>({kel,items:pemilih.filter(p=>p.tim===k.tim&&p.kel===kel)})).filter(x=>x.items.length>0);
+  const timColor=TC[k.tim]||"#991B1B";
+  const isEdit=editKeg===k.id&&canEdit;
+  const isExp=exp[k.tim];
+  const scKeys=Object.keys(SC);
+
+  if(isEdit){
+    return html`<${KegForm} keg=${k} onSave=${f=>saveKeg(k.id,f)} onCancel=${()=>setEditKeg(null)}/>`;
+  }
+
+  return html`<div>
+    <div style=${{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:10,marginBottom:12}}>
+      <div>
+        <div style=${{display:"flex",gap:6,flexWrap:"wrap",marginBottom:5,alignItems:"center"}}>
+          ${tBadge(k.tim)}${sBadge(k.status)}
+          <span style=${{fontSize:11,background:"#FEF2F2",color:"#B91C1C",padding:"2px 8px",borderRadius:999}}>${k.prioritas}</span>
+        </div>
+        <div style=${{fontSize:11,color:"#6B7280"}}>${k.pic}</div>
+        <div style=${{fontSize:10,color:"#9CA3AF",marginTop:2}}>${k.ket}</div>
+      </div>
+      ${canEdit?html`<div style=${{display:"flex",gap:6,flexShrink:0}}>
+        <select value=${k.status} onChange=${e=>updateStatus(k.id,e.target.value)} style=${{fontSize:11,border:"1px solid #E5E7EB",borderRadius:8,padding:"4px 8px",background:"#fff",cursor:"pointer"}}>
+          ${scKeys.map(s=>html`<option key=${s} value=${s}>${s}</option>`)}
+        </select>
+        <button onClick=${()=>setEditKeg(k.id)} style=${{fontSize:11,border:"1px solid #E5E7EB",borderRadius:8,padding:"4px 10px",cursor:"pointer",background:"#fff"}}>Edit</button>
+      </div>`:null}
+    </div>
+    <div style=${{marginBottom:12}}>
+      <div style=${{display:"flex",justifyContent:"space-between",fontSize:11,color:"#6B7280",marginBottom:4}}>
+        <span>Progress</span><span style=${{fontWeight:900,color:timColor}}>${k.done+"/"+k.total+" ("+k.progres+"%)"}</span>
+      </div>
+      ${pBar(k.progres,timColor,6)}
+    </div>
+    <button onClick=${()=>setExp(prev=>{const nx={...prev};nx[k.tim]=!nx[k.tim];return nx;})} style=${{fontSize:11,color:"#6B7280",background:"none",border:"none",cursor:"pointer",marginBottom:8,padding:0}}>
+      ${isExp?"Sembunyikan daftar":"Tampilkan daftar"} (${k.total} orang, ${k.done} selesai)
+    </button>
+    ${isExp?html`<div class="s3">
+      ${byKel.map(bk=>html`<div key=${bk.kel} style=${{borderRadius:8,border:"1px solid #F3F4F6",overflow:"hidden"}}>
+        <div style=${{display:"flex",justifyContent:"space-between",padding:"8px 12px",background:"#F9FAFB",borderBottom:"1px solid #F3F4F6",alignItems:"center"}}>
+          <span style=${{fontSize:11,fontWeight:700}}>Kel. ${bk.kel} - ${KH[bk.kel]||""}</span>
+          <div style=${{display:"flex",gap:6,alignItems:"center"}}>
+            <span style=${{fontSize:11,fontWeight:700,color:barColor(Math.round(bk.items.filter(p=>p.done).length/bk.items.length*100))}}>${bk.items.filter(p=>p.done).length+"/"+bk.items.length}</span>
+            <a href=${mapsUrl("Kelurahan "+bk.kel+" Probolinggo")} target="_blank" rel="noreferrer" style=${{fontSize:10,color:"#2563EB",background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:4,padding:"1px 5px",textDecoration:"none"}}>Maps</a>
+          </div>
+        </div>
+        ${bk.items.map(p=>{
+          const bg=p.done?"rgba(240,253,244,.5)":clBg(p.cluster);
+          const bl=clBd(p.cluster);
+          const nameTxt=p.nama;
+          const alamatTxt=p.alamat;
+          const coktasEl=coktasInfoView(p,true);
+          const ketEl=ketBadge(p.ket);
+          const mapEl=mapsBtn(p.alamat);
+          return html`<div key=${p.id} style=${{padding:"10px 12px",borderBottom:"1px solid #FAFAFA",background:bg,borderLeft:bl}}>
+            <div style=${{display:"flex",alignItems:"flex-start",gap:10}}>
+              ${canEdit?html`<button onClick=${()=>handleToggle(p.id)} style=${{width:26,height:26,borderRadius:7,border:"2px solid "+(p.done?"#16A34A":"#D1D5DB"),background:p.done?"#16A34A":"transparent",color:"#fff",cursor:"pointer",flexShrink:0,marginTop:2,fontWeight:900,fontSize:13}}>
+                ${p.done?"v":""}
+              </button>`:html`<span style=${{fontSize:16,flexShrink:0,marginTop:2,color:p.done?"#16A34A":"#E5E7EB"}}>${p.done?"OK":"-"}</span>`}
+              <div style=${{flex:1,minWidth:0}}>
+                <div style=${{fontWeight:600,fontSize:13,color:p.done?"#16A34A":"#1F2937",textDecoration:p.done?"line-through":"none"}}>${nameTxt}</div>
+                <div style=${{fontSize:11,color:"#9CA3AF",display:"flex",alignItems:"center",gap:3,flexWrap:"wrap"}}>${alamatTxt}${mapEl}</div>
+                ${p.petunjuk?html`<div style=${{fontSize:10,color:"#92400E",background:"#FFFBEB",borderRadius:4,padding:"2px 7px",marginTop:3,display:"inline-block"}}>📌 ${p.petunjuk}</div>`:null}
+                ${coktasEl}
+              </div>
+              ${ketEl}
+            </div>
+          </div>`;
+        })}
+      </div>`)}
+    </div>`:null}
+    ${k.catatan?html`<div style=${{marginTop:10,fontSize:11,color:"#92400E",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:6,padding:"6px 10px"}}>${k.catatan}</div>`:null}
+  </div>`;
+}
+
+/* ════ APP ════ */
+function App(){
+  const [role,setRole]=useState("Admin");
+  const [tab,setTab]=useState("dashboard");
+  const [search,setSearch]=useState("");
+  const [fTim,setFTim]=useState("Semua");
+  const [fKel,setFKel]=useState("Semua");
+  const [pemilih,setPemilih]=useState(INIT_P);
+  const [kegMeta,setKegMeta]=useState(INIT_KEG);
+  const [dokumen,setDokumen]=useState(INIT_DOK);
+  const [log,setLog]=useState(INIT_LOG);
+  const [exp,setExp]=useState({"TIM 1":true,"TIM 2":true,"TIM 3":false});
+  const [editKeg,setEditKeg]=useState(null);
+  const [editDocId,setEditDocId]=useState(null);
+  const [editDocVal,setEditDocVal]=useState("");
+  const [showAddDoc,setShowAddDoc]=useState(false);
+  const [newDoc,setNewDoc]=useState({nama:"",link:"",catatan:""});
+  const [editP,setEditP]=useState(null);
+  const [showAddP,setShowAddP]=useState(false);
+  const [newP,setNewP]=useState({...EMPTY_P});
+  const [delConfirm,setDelConfirm]=useState(null);
+  const [coktasModal,setCoktasModal]=useState(null);
+  const [batalConfirm,setBatalConfirm]=useState(null);
+  const [saving,setSaving]=useState(false);
+  const canEdit=role!=="Viewer";
+
+  const pRef=useRef(pemilih);pRef.current=pemilih;
+  const kRef=useRef(kegMeta);kRef.current=kegMeta;
+  const dRef=useRef(dokumen);dRef.current=dokumen;
+  const lRef=useRef(log);lRef.current=log;
+
+  const save=useCallback((p,k,d,l)=>{
+    setSaving(true);
+    try{localStorage.setItem("ct8p",JSON.stringify(p));localStorage.setItem("ct8k",JSON.stringify(k));localStorage.setItem("ct8d",JSON.stringify(d));localStorage.setItem("ct8l",JSON.stringify(l));}catch(e){}
+    setTimeout(()=>setSaving(false),700);
+  },[]);
+
+  useEffect(()=>{
+    try{
+      const rP=localStorage.getItem("ct8p");const rK=localStorage.getItem("ct8k");
+      const rD=localStorage.getItem("ct8d");const rL=localStorage.getItem("ct8l");
+      if(rP){const p=JSON.parse(rP);if(p&&p[0]&&p[0].tim)setPemilih(p);}
+      if(rK){const k=JSON.parse(rK);if(k&&k[0]&&k[0].tim)setKegMeta(k);}
+      if(rD)setDokumen(JSON.parse(rD));
+      if(rL)setLog(JSON.parse(rL));
+    }catch(e){}
+  },[]);
+
+  const addLog=useCallback((user,icon,action,detail,np,nk,nd)=>{
+    const entry={id:Date.now(),time:nowStr(),user:user,icon:icon||"📝",action:action,detail:detail||""};
+    const nl=[entry,...lRef.current];
+    setLog(nl);
+    save(np||pRef.current,nk||kRef.current,nd||dRef.current,nl);
+  },[save]);
+
+  const kegiatan=useMemo(()=>kegMeta.map(k=>{
+    const kp=pemilih.filter(p=>p.tim===k.tim);
+    const done=kp.filter(p=>p.done).length;
+    const progres=kp.length?Math.round(done/kp.length*100):0;
+    return Object.assign({},k,{total:kp.length,done:done,progres:progres});
+  }),[kegMeta,pemilih]);
+
+  const totalDone=pemilih.filter(p=>p.done).length;
+  const ovPct=pemilih.length?Math.round(totalDone/pemilih.length*100):0;
+
+  const filtP=useMemo(()=>pemilih.filter(p=>{
+    if(fTim!=="Semua"&&p.tim!==fTim)return false;
+    if(fKel!=="Semua"&&p.kel!==fKel)return false;
+    if(!search)return true;
+    const s=search.toLowerCase();
+    return p.nama.toLowerCase().includes(s)||p.nik.includes(s)||p.ket.toLowerCase().includes(s)||p.alamat.toLowerCase().includes(s)||(p.coktasByPetugas&&p.coktasByPetugas.toLowerCase().includes(s));
+  }),[pemilih,fTim,fKel,search]);
+
+  const handleToggle=useCallback(id=>{
+    if(!canEdit)return;
+    const p=pemilih.find(x=>x.id===id);
+    if(!p)return;
+    if(p.done)setBatalConfirm(p);
+    else setCoktasModal(p);
+  },[canEdit,pemilih]);
+
+  const confirmCoktas=(p,petugas,catatan)=>{
+    const wkt=nowStr();
+    const np=pemilih.map(x=>x.id===p.id?Object.assign({},x,{done:true,coktasByPetugas:petugas,coktasWaktu:wkt,coktasCatatan:catatan}):x);
+    setPemilih(np);
+    addLog(petugas,"✅","Coktas dicatat",p.nama+" | "+p.kel+" | "+p.tim,np);
+    setCoktasModal(null);
+  };
+  const konfBatal=p=>{
+    const np=pemilih.map(x=>x.id===p.id?Object.assign({},x,{done:false,coktasByPetugas:"",coktasWaktu:"",coktasCatatan:""}):x);
+    setPemilih(np);
+    addLog(role,"❌","Coktas dibatalkan",p.nama+" | "+p.tim,np);
+    setBatalConfirm(null);
+  };
+  const updateStatus=(id,status)=>{
+    const k=kegMeta.find(x=>x.id===id);
+    const nk=kegMeta.map(x=>x.id===id?Object.assign({},x,{status:status,updated:nowStr()}):x);
+    setKegMeta(nk);
+    addLog(role,"📋","Status "+k.tim+" diubah",k.status+" -> "+status,undefined,nk);
+  };
+  const saveKeg=(id,f)=>{
+    const k=kegMeta.find(x=>x.id===id);
+    const nk=kegMeta.map(x=>x.id===id?Object.assign({},x,f,{updated:nowStr()}):x);
+    setKegMeta(nk);
+    addLog(role,"🔧","Data "+k.tim+" diperbarui","PIC: "+f.pic,undefined,nk);
+    setEditKeg(null);
+  };
+  const savePEdit=p=>{
+    const np=pemilih.map(x=>x.id===p.id?p:x);
+    setPemilih(np);
+    addLog(role,"✏️","Data pemilih diubah",p.nama+" | "+p.tim,np);
+    setEditP(null);
+  };
+  const addPemilih=()=>{
+    if(!newP.nama.trim()||!newP.nik.trim()){alert("Nama dan NIK wajib diisi!");return;}
+    const p=Object.assign({},newP,{id:Date.now()});
+    const np=[...pemilih,p];
+    setPemilih(np);
+    addLog(role,"➕","Pemilih ditambahkan",p.nama+" | "+p.tim,np);
+    setNewP({...EMPTY_P});
+    setShowAddP(false);
+  };
+  const delPemilih=id=>{
+    const p=pemilih.find(x=>x.id===id);
+    const np=pemilih.filter(x=>x.id!==id);
+    setPemilih(np);
+    addLog(role,"🗑️","Pemilih dihapus",p.nama+" | "+p.tim,np);
+    setDelConfirm(null);
+  };
+  const startEditDoc=d=>{setEditDocId(d.id);setEditDocVal(d.link||"");};
+  const saveDocLink=d=>{
+    const nd=dokumen.map(x=>x.id===d.id?Object.assign({},x,{link:editDocVal}):x);
+    setDokumen(nd);
+    addLog(role,"📁","Link dokumen diperbarui",d.nama,undefined,undefined,nd);
+    setEditDocId(null);setEditDocVal("");
+  };
+  const delDoc=d=>{
+    const nd=dokumen.filter(x=>x.id!==d.id);
+    setDokumen(nd);
+    addLog(role,"🗑️","Dokumen dihapus",d.nama,undefined,undefined,nd);
+  };
+
+  const scKeys=Object.keys(SC);
+
+  return html`<div style=${{minHeight:"100vh",background:"#F3F4F6"}}>
+
+    <div style=${{background:"linear-gradient(135deg,#7F1D1D,#991B1B,#B91C1C)"}}>
+      <div class="cn" style=${{paddingTop:20,paddingBottom:20}}>
+        <div style=${{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
+          <div>
+            <div style=${{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+              <span style=${{background:"rgba(255,255,255,.2)",color:"#fff",fontSize:11,padding:"2px 10px",borderRadius:999,fontWeight:600}}>KPU KOTA PROBOLINGGO</span>
+              <span style=${{background:"#FCD34D",color:"#78350F",fontSize:11,padding:"2px 10px",borderRadius:999,fontWeight:600}}>CPNS 2024 Angkatan V</span>
+              ${saving?html`<span style=${{background:"rgba(134,239,172,.8)",color:"#14532D",fontSize:11,padding:"2px 10px",borderRadius:999,fontWeight:600}}>Menyimpan...</span>`:null}
+            </div>
+            <h1 style=${{color:"#fff",fontWeight:900,fontSize:20,margin:0}}>Pelaksanaan Coktas PDPB Semester II</h1>
+            <p style=${{color:"#FECACA",fontSize:13,fontWeight:500,margin:"3px 0 0"}}>KPU Kota Probolinggo - Kelompok A</p>
+            <div style=${{display:"flex",gap:12,marginTop:8,flexWrap:"wrap",fontSize:12,color:"#FCA5A5"}}>
+              <span>11-12 Mei 2026</span><span>3 Tim / 7 Anggota</span><span>${pemilih.length} Pemilih</span>
+            </div>
+          </div>
+          <div style=${{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:8}}>
+            <div style=${{display:"flex",alignItems:"center",gap:8}}>
+              <span style=${{color:"#FCA5A5",fontSize:12}}>Akses:</span>
+              <select value=${role} onChange=${e=>{const old=role;setRole(e.target.value);addLog(e.target.value,"👤","Hak akses diubah",old+" -> "+e.target.value);}} style=${{background:"rgba(255,255,255,.2)",color:"#fff",border:"1px solid rgba(255,255,255,.3)",borderRadius:8,padding:"4px 8px",fontSize:12,cursor:"pointer"}}>
+                <option style=${{color:"#111",background:"#fff"}}>Admin</option>
+                <option style=${{color:"#111",background:"#fff"}}>Editor</option>
+                <option style=${{color:"#111",background:"#fff"}}>Viewer</option>
+              </select>
+            </div>
+            <div style=${{textAlign:"right"}}><div style=${{fontSize:28,fontWeight:900,color:"#fff"}}>${ovPct}%</div><div style=${{fontSize:11,color:"#FCA5A5"}}>Overall</div></div>
+          </div>
+        </div>
+        <div style=${{marginTop:14}}>
+          <div style=${{display:"flex",justifyContent:"space-between",fontSize:11,color:"#FCA5A5",marginBottom:5}}>
+            <span>${totalDone} dicoktas</span><span>${pemilih.length-totalDone} belum</span>
+          </div>
+          <div style=${{background:"rgba(0,0,0,.25)",borderRadius:999,height:16,overflow:"hidden"}}>
+            <div style=${{width:ovPct+"%",background:"linear-gradient(90deg,#FCD34D,#FBBF24)",height:"100%",borderRadius:999,transition:"width .6s"}}/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabbar no-print">
+      <div class="cn" style=${{display:"flex",overflowX:"auto"}}>
+        ${[{id:"dashboard",l:"Dashboard"},{id:"monitoring",l:"Monitoring"},{id:"pemilih",l:"Data Pemilih"},{id:"rekap",l:"Rekap"},{id:"tim",l:"Tim"},{id:"dokumen",l:"Dokumen"},{id:"log",l:"Log"}].map(t=>html`
+          <button key=${t.id} onClick=${()=>setTab(t.id)} style=${{padding:"12px 14px",border:"none",borderBottom:"2px solid "+(tab===t.id?"#B91C1C":"transparent"),background:tab===t.id?"#FEF2F2":"transparent",color:tab===t.id?"#B91C1C":"#6B7280",fontWeight:tab===t.id?700:400,cursor:"pointer",fontSize:12,flexShrink:0,whiteSpace:"nowrap"}}>
+            ${t.l}
+          </button>`)}
+      </div>
+    </div>
+
+    <div class="cn" style=${{paddingTop:24,paddingBottom:24}}>
+
+      ${tab==="dashboard"?html`<div class="s5">
+        <div class="g4">
+          ${[{l:"Total Pemilih",v:pemilih.length,c:"#991B1B",bg:"#FEF2F2"},{l:"Sudah Dicoktas",v:totalDone,c:"#16A34A",bg:"#F0FDF4"},{l:"Belum Dicoktas",v:pemilih.length-totalDone,c:"#D97706",bg:"#FFFBEB"},{l:"Tim Selesai",v:kegiatan.filter(k=>k.status==="Selesai").length+"/3",c:"#2563EB",bg:"#EFF6FF"}].map((c,i)=>html`
+            <div key=${i} style=${{background:c.bg,borderLeft:"4px solid "+c.c,borderRadius:12,padding:16,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style=${{color:c.c,fontSize:26,fontWeight:900}}>${c.v}</div>
+              <div style=${{fontSize:13,fontWeight:600,color:"#374151",marginTop:4}}>${c.l}</div>
+            </div>`)}
+        </div>
+        <div class="g3">
+          ${kegiatan.map(k=>html`
+            <div key=${k.id} style=${{borderTop:"3px solid "+TC[k.tim],background:TB[k.tim],borderRadius:12,padding:20,border:"1px solid #F3F4F6",boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>${tBadge(k.tim)}${sBadge(k.status)}</div>
+              <div style=${{fontSize:28,fontWeight:900,color:TC[k.tim]}}>${k.done+"/"+k.total}</div>
+              <div style=${{fontSize:11,color:"#6B7280",marginBottom:8}}>dicoktas - ${k.progres}%</div>
+              ${pBar(k.progres,TC[k.tim],6)}
+              <div style=${{fontSize:11,color:"#6B7280",marginTop:8}}>${k.pic}</div>
+            </div>`)}
+        </div>
+        <div class="g2">
+          <div style=${CARD}>
+            <p style=${{fontWeight:700,fontSize:13,marginBottom:14}}>Progress per Kelurahan</p>
+            ${KELS.map(kel=>{
+              const kp=pemilih.filter(p=>p.kel===kel);
+              const d=kp.filter(p=>p.done).length;
+              const pct=kp.length?Math.round(d/kp.length*100):0;
+              const ts=[...new Set(kp.map(p=>p.tim))];
+              return html`<div key=${kel} style=${{marginBottom:14}}>
+                <div style=${{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                  <div style=${{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                    <span style=${{fontWeight:600,fontSize:13}}>${kel}</span>
+                    ${ts.map(t=>html`<span key=${t} style=${{background:TC[t]+"20",color:TC[t],fontSize:9,padding:"1px 5px",borderRadius:4,fontWeight:700}}>${t}</span>`)}
+                  </div>
+                  <span style=${{fontSize:11,fontWeight:700}}>${d+"/"+kp.length}</span>
+                </div>
+                ${pBar(pct,barColor(pct),6)}
+              </div>`;
+            })}
+          </div>
+          <div style=${CARD}>
+            <p style=${{fontWeight:700,fontSize:13,marginBottom:8}}>Proporsi Coktas</p>
+            <div style=${{display:"flex",justifyContent:"center"}}>${donutChart(totalDone,pemilih.length)}</div>
+            <div style=${{marginTop:8}}>
+              ${["TIM 1","TIM 2","TIM 3"].map(t=>{
+                const kp=pemilih.filter(p=>p.tim===t);
+                const d=kp.filter(p=>p.done).length;
+                const pct=kp.length?Math.round(d/kp.length*100):0;
+                return html`<div key=${t} style=${{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                  <span style=${{color:TC[t],fontWeight:700,fontSize:11,width:42}}>${t}</span>
+                  <div style=${{flex:1}}>${pBar(pct,TC[t],5)}</div>
+                  <span style=${{fontWeight:700,color:"#374151",fontSize:11,width:70,textAlign:"right"}}>${d+"/"+kp.length+" ("+pct+"%)"}</span>
+                </div>`;
+              })}
+            </div>
+          </div>
+        </div>
+      </div>`:null}
+
+      ${tab==="monitoring"?html`<div class="s4">
+        <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <h2 style=${{fontSize:18,fontWeight:700,margin:0}}>Monitoring 3 Tim</h2>
+          ${!canEdit?html`<span style=${{fontSize:11,color:"#D97706",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:999,padding:"3px 10px"}}>Viewer</span>`:null}
+        </div>
+        ${kegiatan.map(k=>html`
+          <div key=${k.id} style=${{background:"#fff",borderRadius:12,border:"1px solid #F3F4F6",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+            <div style=${{borderLeft:"5px solid "+(TC[k.tim]||"#991B1B"),padding:20}}>
+              <${KegCard} k=${k} pemilih=${pemilih} canEdit=${canEdit} exp=${exp} setExp=${setExp} editKeg=${editKeg} setEditKeg=${setEditKeg} updateStatus=${updateStatus} saveKeg=${saveKeg} handleToggle=${handleToggle}/>
+            </div>
+          </div>`)}
+      </div>`:null}
+
+      ${tab==="pemilih"?html`<div class="s4">
+        <div style=${{display:"flex",flexWrap:"wrap",gap:10,alignItems:"center",justifyContent:"space-between"}}>
+          <h2 style=${{fontSize:18,fontWeight:700,margin:0}}>Data Pemilih (${filtP.length})</h2>
+          <div style=${{display:"flex",flexWrap:"wrap",gap:8}}>
+            <div style=${{position:"relative"}}>
+              <input value=${search} onChange=${e=>setSearch(e.target.value)} placeholder="Nama / NIK / catatan..." style=${{paddingLeft:28,paddingRight:10,paddingTop:7,paddingBottom:7,fontSize:12,border:"1px solid #E5E7EB",borderRadius:8,width:190,outline:"none"}}/>
+              <span style=${{position:"absolute",left:8,top:"50%",transform:"translateY(-50%)",color:"#9CA3AF",fontSize:12}}>?</span>
+            </div>
+            <select value=${fTim} onChange=${e=>setFTim(e.target.value)} style=${{fontSize:12,border:"1px solid #E5E7EB",borderRadius:8,padding:"7px 10px",cursor:"pointer",background:"#fff"}}>
+              <option>Semua</option><option>TIM 1</option><option>TIM 2</option><option>TIM 3</option>
+            </select>
+            <select value=${fKel} onChange=${e=>setFKel(e.target.value)} style=${{fontSize:12,border:"1px solid #E5E7EB",borderRadius:8,padding:"7px 10px",cursor:"pointer",background:"#fff"}}>
+              <option>Semua</option>
+              ${KELS.map(k=>html`<option key=${k}>${k}</option>`)}
+            </select>
+            ${canEdit?html`<button onClick=${()=>setShowAddP(!showAddP)} style=${{fontSize:12,background:"#991B1B",color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",cursor:"pointer",fontWeight:600}}>+ Tambah</button>`:null}
+          </div>
+        </div>
+        ${showAddP&&canEdit?html`<div style=${{...CARD,padding:16}}>
+          <p style=${{fontWeight:600,fontSize:13,marginBottom:12,margin:"0 0 12px 0"}}>Tambah Pemilih Baru</p>
+          <div class="g3s" style=${{fontSize:13,marginBottom:12}}>
+            <select value=${newP.tim} onChange=${e=>setNewP({...newP,tim:e.target.value})} class=${INP}><option>TIM 1</option><option>TIM 2</option><option>TIM 3</option></select>
+            <select value=${newP.kel} onChange=${e=>setNewP({...newP,kel:e.target.value})} class=${INP}>${KELS.map(k=>html`<option key=${k}>${k}</option>`)}</select>
+            <input value=${newP.nik} onChange=${e=>setNewP({...newP,nik:e.target.value})} placeholder="NIK *" class=${INP}/>
+            <input value=${newP.nama} onChange=${e=>setNewP({...newP,nama:e.target.value})} placeholder="Nama Lengkap *" class="${INP} sp2"/>
+            <input value=${newP.ttl} onChange=${e=>setNewP({...newP,ttl:e.target.value})} placeholder="Tempat, DD-MM-YYYY" class=${INP}/>
+            <input value=${newP.alamat} onChange=${e=>setNewP({...newP,alamat:e.target.value})} placeholder="Alamat lengkap" class="${INP} sp2"/>
+            <input value=${newP.petunjuk} onChange=${e=>setNewP({...newP,petunjuk:e.target.value})} placeholder="Petunjuk lokasi" class=${INP}/>
+            <select value=${newP.ket} onChange=${e=>setNewP({...newP,ket:e.target.value})} class=${INP}>${KET_OPTS.map(k=>html`<option key=${k}>${k}</option>`)}</select>
+            <div style=${{display:"flex",gap:6}}>
+              <select value=${newP.jk} onChange=${e=>setNewP({...newP,jk:e.target.value})} class=${INP}><option value="L">L</option><option value="P">P</option></select>
+              <select value=${newP.ektp} onChange=${e=>setNewP({...newP,ektp:e.target.value})} class=${INP}><option>Belum</option><option>Sudah</option></select>
+            </div>
+          </div>
+          <div style=${{display:"flex",gap:8}}>
+            <button onClick=${addPemilih} style=${{background:"#16A34A",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:13,cursor:"pointer",fontWeight:600}}>Simpan</button>
+            <button onClick=${()=>{setShowAddP(false);setNewP({...EMPTY_P});}} style=${{background:"none",color:"#9CA3AF",border:"none",padding:"8px 12px",fontSize:13,cursor:"pointer"}}>Batal</button>
+          </div>
+        </div>`:null}
+        <div style=${{...CARD,padding:0,overflow:"hidden"}}>
+          <div style=${{overflowX:"auto"}}>
+            <table style=${{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+              <thead><tr style=${{background:"#991B1B",color:"#fff"}}>
+                ${["No","Tim","Kel","NIK","Nama & Alamat","Petunjuk","TTL","JK","E-KTP","Keterangan","Ket. Coktas","Coktas","Aksi"].map(h=>html`<th key=${h} style=${{padding:"10px 8px",textAlign:"left",fontWeight:600,whiteSpace:"nowrap"}}>${h}</th>`)}
+              </tr></thead>
+              <tbody>
+                ${filtP.map((p,i)=>{
+                  const coktasEl=p.done&&p.coktasByPetugas?html`<div style=${{fontSize:10}}><div style=${{color:"#16A34A",fontWeight:600}}>${p.coktasByPetugas}</div><div style=${{color:"#9CA3AF"}}>${p.coktasWaktu}</div>${p.coktasCatatan?html`<div style=${{color:"#374151",fontStyle:"italic",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${p.coktasCatatan}</div>`:null}</div>`:html`<span style=${{color:"#D1D5DB",fontSize:10}}>-</span>`;
+                  const mapEl=mapsBtn(p.alamat);
+                  const ketEl=ketBadge(p.ket);
+                  return html`<tr key=${p.id} style=${{borderBottom:"1px solid #F9FAFB",background:p.done?"rgba(240,253,244,.4)":clBg(p.cluster)}}>
+                    <td style=${{padding:"8px",color:"#9CA3AF",borderLeft:clBd(p.cluster)}}>${i+1}</td>
+                    <td style=${{padding:"4px 8px"}}>${tBadge(p.tim)}</td>
+                    <td style=${{padding:"4px 8px"}}><span style=${{background:"#FEF2F2",color:"#B91C1C",fontWeight:600,fontSize:10,padding:"2px 6px",borderRadius:999}}>${p.kel}</span></td>
+                    <td style=${{padding:"4px 8px",fontFamily:"monospace",color:"#9CA3AF",fontSize:10}}>${p.nik}</td>
+                    <td style=${{padding:"4px 8px"}}>
+                      <div style=${{fontWeight:600,color:"#1F2937"}}>${p.nama}</div>
+                      <div style=${{color:"#9CA3AF",display:"flex",alignItems:"center",gap:3,flexWrap:"wrap"}}><span style=${{maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"inline-block"}}>${p.alamat}</span>${mapEl}</div>
+                    </td>
+                    <td style=${{padding:"4px 8px"}}>${p.petunjuk?html`<span style=${{color:"#92400E",background:"#FFFBEB",padding:"1px 5px",borderRadius:4,fontSize:10,whiteSpace:"nowrap"}}>${p.petunjuk}</span>`:null}</td>
+                    <td style=${{padding:"4px 8px",color:"#6B7280",whiteSpace:"nowrap",fontSize:10}}>${p.ttl}</td>
+                    <td style=${{padding:"4px 8px",textAlign:"center"}}><span style=${{padding:"2px 5px",borderRadius:4,fontWeight:600,background:p.jk==="L"?"#DBEAFE":"#FCE7F3",color:p.jk==="L"?"#1D4ED8":"#BE185D"}}>${p.jk}</span></td>
+                    <td style=${{padding:"4px 8px",textAlign:"center"}}><span style=${{padding:"2px 5px",borderRadius:4,fontWeight:600,background:p.ektp==="Sudah"?"#DCFCE7":"#FEE2E2",color:p.ektp==="Sudah"?"#16A34A":"#DC2626"}}>${p.ektp}</span></td>
+                    <td style=${{padding:"4px 8px"}}>${ketEl}</td>
+                    <td style=${{padding:"4px 8px",maxWidth:170}}>${coktasEl}</td>
+                    <td style=${{padding:"4px 8px",textAlign:"center"}}>
+                      ${canEdit?html`<button onClick=${()=>handleToggle(p.id)} style=${{width:26,height:26,borderRadius:7,border:"2px solid "+(p.done?"#16A34A":"#D1D5DB"),background:p.done?"#16A34A":"transparent",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:12,margin:"0 auto"}}>${p.done?"v":""}</button>`:html`<span style=${{color:p.done?"#16A34A":"#E5E7EB",fontSize:14}}>${p.done?"OK":"-"}</span>`}
+                    </td>
+                    <td style=${{padding:"4px 8px"}}>
+                      ${canEdit?html`<div style=${{display:"flex",gap:3}}>
+                        <button onClick=${()=>setEditP({...p})} style=${{background:"none",border:"1px solid #BFDBFE",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#2563EB",fontSize:11}}>Edit</button>
+                        <button onClick=${()=>setDelConfirm(p.id)} style=${{background:"none",border:"1px solid #FECACA",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#DC2626",fontSize:11}}>Hapus</button>
+                      </div>`:null}
+                    </td>
+                  </tr>`;
+                })}
+              </tbody>
+            </table>
+          </div>
+          ${filtP.length===0?html`<div style=${{textAlign:"center",padding:"48px 20px",color:"#9CA3AF"}}><div>Tidak ada data</div></div>`:null}
+        </div>
+      </div>`:null}
+
+      ${tab==="rekap"?html`<div class="s5">
+        <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <h2 style=${{fontSize:18,fontWeight:700,margin:0}}>Rekapitulasi Hasil Coktas</h2>
+          <button onClick=${()=>window.print()} class="no-print" style=${{fontSize:13,border:"1px solid #E5E7EB",borderRadius:8,padding:"7px 14px",cursor:"pointer",background:"#fff"}}>Cetak</button>
+        </div>
+        <div style=${{...CARD,padding:0,overflow:"hidden"}}>
+          <div style=${{background:"#991B1B",padding:"10px 20px"}}><p style=${{fontWeight:700,color:"#fff",fontSize:13,margin:0}}>Rekapitulasi per Tim</p></div>
+          <div style=${{overflowX:"auto"}}>
+            <table style=${{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+              <thead><tr style=${{background:"#F9FAFB",color:"#6B7280",fontWeight:600,borderBottom:"1px solid #F3F4F6"}}>
+                ${["Tim","PIC","Cakupan","Jml","Sudah","Belum","Progress","Status"].map(h=>html`<th key=${h} style=${{padding:"10px 14px",textAlign:"left",whiteSpace:"nowrap"}}>${h}</th>`)}
+              </tr></thead>
+              <tbody>
+                ${kegiatan.map(k=>html`<tr key=${k.id} style=${{borderBottom:"1px solid #F9FAFB"}}>
+                  <td style=${{padding:"12px 14px"}}>${tBadge(k.tim)}</td>
+                  <td style=${{padding:"12px 14px",color:"#6B7280",fontSize:11}}>${k.pic}</td>
+                  <td style=${{padding:"12px 14px",color:"#9CA3AF",fontSize:11}}>${k.ket}</td>
+                  <td style=${{padding:"12px 14px",textAlign:"center",fontWeight:600}}>${k.total}</td>
+                  <td style=${{padding:"12px 14px",textAlign:"center",fontWeight:700,color:"#16A34A"}}>${k.done}</td>
+                  <td style=${{padding:"12px 14px",textAlign:"center",fontWeight:700,color:"#DC2626"}}>${k.total-k.done}</td>
+                  <td style=${{padding:"12px 14px"}}><div style=${{display:"flex",alignItems:"center",gap:8}}><div style=${{width:80}}>${pBar(k.progres,TC[k.tim],5)}</div><span style=${{fontSize:11,fontWeight:700,color:TC[k.tim]}}>${k.progres+"%"}</span></div></td>
+                  <td style=${{padding:"12px 14px"}}>${sBadge(k.status)}</td>
+                </tr>`)}
+                <tr style=${{background:"#FEF2F2",borderTop:"2px solid #FCA5A5"}}>
+                  <td colSpan="3" style=${{padding:"12px 14px",fontWeight:900,color:"#991B1B"}}>TOTAL</td>
+                  <td style=${{padding:"12px 14px",textAlign:"center",fontWeight:700,color:"#991B1B"}}>${pemilih.length}</td>
+                  <td style=${{padding:"12px 14px",textAlign:"center",fontWeight:700,color:"#16A34A"}}>${totalDone}</td>
+                  <td style=${{padding:"12px 14px",textAlign:"center",fontWeight:700,color:"#DC2626"}}>${pemilih.length-totalDone}</td>
+                  <td style=${{padding:"12px 14px"}}><div style=${{display:"flex",alignItems:"center",gap:8}}><div style=${{width:80}}>${pBar(ovPct,"#991B1B",5)}</div><span style=${{fontSize:11,fontWeight:900,color:"#991B1B"}}>${ovPct+"%"}</span></div></td>
+                  <td/>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        ${["TIM 1","TIM 2","TIM 3"].map(t=>{
+          const kp=pemilih.filter(p=>p.tim===t);
+          const d=kp.filter(p=>p.done).length;
+          const pct=kp.length?Math.round(d/kp.length*100):0;
+          return html`<div key=${t} style=${{borderTop:"3px solid "+(TC[t]||"#991B1B"),background:"#fff",borderRadius:12,border:"1px solid #F3F4F6",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+            <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#F9FAFB",borderBottom:"1px solid #F3F4F6"}}>
+              <div style=${{display:"flex",alignItems:"center",gap:10}}>${tBadge(t)}<span style=${{fontWeight:700,fontSize:13}}>${d+"/"+kp.length+" dicoktas ("+pct+"%)"}</span></div>
+              <div style=${{display:"flex",gap:6}}>
+                <span style=${{fontSize:11,background:"#DCFCE7",color:"#16A34A",padding:"2px 8px",borderRadius:999,fontWeight:700}}>${d}</span>
+                <span style=${{fontSize:11,background:"#FEE2E2",color:"#DC2626",padding:"2px 8px",borderRadius:999,fontWeight:700}}>${kp.length-d}</span>
+              </div>
+            </div>
+            <div style=${{overflowX:"auto"}}>
+              <table style=${{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                <thead><tr style=${{background:"#F9FAFB",color:"#9CA3AF",fontWeight:600,borderBottom:"1px solid #F3F4F6"}}>
+                  ${["No","Kel","NIK","Nama","Alamat","JK","E-KTP","Keterangan","Coktas","Petugas","Catatan"].map(h=>html`<th key=${h} style=${{padding:"8px 12px",textAlign:"left",whiteSpace:"nowrap"}}>${h}</th>`)}
+                </tr></thead>
+                <tbody>
+                  ${kp.map((p,i)=>html`<tr key=${p.id} style=${{borderBottom:"1px solid #F9FAFB",background:p.done?"rgba(240,253,244,.4)":"transparent"}}>
+                    <td style=${{padding:"8px 12px",color:"#9CA3AF"}}>${i+1}</td>
+                    <td style=${{padding:"8px 12px"}}><span style=${{background:"#FEF2F2",color:"#B91C1C",fontWeight:600,padding:"1px 6px",borderRadius:999}}>${p.kel}</span></td>
+                    <td style=${{padding:"8px 12px",fontFamily:"monospace",color:"#9CA3AF",fontSize:10}}>${p.nik}</td>
+                    <td style=${{padding:"8px 12px",fontWeight:600,color:"#374151"}}>${p.nama}</td>
+                    <td style=${{padding:"8px 12px",color:"#6B7280",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>${p.alamat}</td>
+                    <td style=${{padding:"8px 12px",textAlign:"center"}}><span style=${{padding:"1px 5px",borderRadius:4,fontWeight:600,background:p.jk==="L"?"#DBEAFE":"#FCE7F3",color:p.jk==="L"?"#1D4ED8":"#BE185D"}}>${p.jk}</span></td>
+                    <td style=${{padding:"8px 12px",textAlign:"center"}}><span style=${{padding:"1px 5px",borderRadius:4,fontWeight:600,background:p.ektp==="Sudah"?"#DCFCE7":"#FEE2E2",color:p.ektp==="Sudah"?"#16A34A":"#DC2626"}}>${p.ektp}</span></td>
+                    <td style=${{padding:"8px 12px"}}>${ketBadge(p.ket)}</td>
+                    <td style=${{padding:"8px 12px",textAlign:"center"}}>${p.done?html`<span style=${{color:"#16A34A",fontWeight:900}}>OK</span>`:html`<span style=${{color:"#E5E7EB"}}>-</span>`}</td>
+                    <td style=${{padding:"8px 12px",color:p.coktasByPetugas?"#16A34A":"#9CA3AF",fontWeight:p.coktasByPetugas?600:400}}>${p.coktasByPetugas||"-"}</td>
+                    <td style=${{padding:"8px 12px",color:"#374151",fontStyle:p.coktasCatatan?"italic":"normal",maxWidth:200}}>${p.coktasCatatan||"-"}</td>
+                  </tr>`)}
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+        })}
+      </div>`:null}
+
+      ${tab==="tim"?html`<div class="s5">
+        <h2 style=${{fontSize:18,fontWeight:700,margin:0}}>Susunan 3 Tim</h2>
+        ${["TIM 1","TIM 2","TIM 3"].map(t=>{
+          const members=ANGGOTA.filter(a=>a.tim===t);
+          const kp=pemilih.filter(p=>p.tim===t);
+          const done=kp.filter(p=>p.done).length;
+          const pct=kp.length?Math.round(done/kp.length*100):0;
+          return html`<div key=${t} style=${{borderTop:"3px solid "+(TC[t]||"#991B1B"),background:"#fff",borderRadius:12,border:"1px solid #F3F4F6",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+            <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:16}}>
+              <div style=${{display:"flex",alignItems:"center",gap:12}}>${tBadge(t)}<div><div style=${{fontWeight:700,fontSize:13,color:"#374151"}}>${done+"/"+kp.length+" dicoktas"}</div><div style=${{fontSize:11,color:"#9CA3AF"}}>${pct+"%"}</div></div></div>
+              <div style=${{width:140}}>${pBar(pct,TC[t]||"#991B1B",6)}</div>
+            </div>
+            <div class="g3s">${members.map(m=>html`
+              <div key=${m.id} style=${{display:"flex",alignItems:"center",gap:10,background:"#F9FAFB",borderRadius:10,padding:12}}>
+                <div style=${{width:42,height:42,borderRadius:"50%",background:m.color,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:13,flexShrink:0}}>${m.inisial}</div>
+                <div><div style=${{fontWeight:700,fontSize:13,color:"#1F2937"}}>${m.nama}</div><div style=${{fontSize:11,color:"#9CA3AF"}}>${m.jabatan}</div></div>
+              </div>`)}</div>
+          </div>`;
+        })}
+      </div>`:null}
+
+      ${tab==="dokumen"?html`<div class="s4">
+        <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <h2 style=${{fontSize:18,fontWeight:700,margin:0}}>Penyimpanan Dokumen</h2>
+          ${canEdit?html`<button onClick=${()=>setShowAddDoc(!showAddDoc)} style=${{fontSize:13,background:"#991B1B",color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",cursor:"pointer",fontWeight:600}}>+ Tambah Link</button>`:null}
+        </div>
+        <div style=${{background:"linear-gradient(135deg,#1A73E8,#0F5CB5)",borderRadius:14,padding:20,boxShadow:"0 4px 16px rgba(26,115,232,.3)"}}>
+          <div style=${{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+            <div style=${{fontSize:42}}>📁</div>
+            <div style=${{flex:1,minWidth:160}}>
+              <div style=${{fontWeight:800,color:"#fff",fontSize:15}}>Google Drive - Folder Dokumen Coktas PDPB</div>
+              <div style=${{fontSize:12,color:"rgba(255,255,255,.8)",marginTop:3}}>Folder utama Kelompok A</div>
+            </div>
+            <div style=${{display:"flex",gap:8,flexShrink:0,flexWrap:"wrap"}}>
+              <a href=${DRIVE_URL} target="_blank" rel="noreferrer" style=${{background:"#fff",color:"#1A73E8",fontWeight:700,fontSize:13,borderRadius:9,padding:"9px 18px",textDecoration:"none"}}>Buka Drive</a>
+              <a href=${DRIVE_URL} target="_blank" rel="noreferrer" style=${{background:"rgba(255,255,255,.2)",color:"#fff",fontWeight:600,fontSize:13,borderRadius:9,padding:"9px 18px",textDecoration:"none",border:"1px solid rgba(255,255,255,.4)"}}>Upload File</a>
+            </div>
+          </div>
+          <div style=${{marginTop:14,background:"rgba(255,255,255,.15)",borderRadius:8,padding:"10px 14px",fontSize:11,color:"rgba(255,255,255,.9)"}}>
+            Cara upload: Klik "Upload File" buka Google Drive, klik "+ Baru" atau drag-and-drop file ke folder
+          </div>
+        </div>
+        ${showAddDoc&&canEdit?html`<div style=${{...CARD,padding:16}}>
+          <p style=${{fontWeight:600,fontSize:13,marginBottom:12,margin:"0 0 12px 0"}}>Tambah Link Dokumen</p>
+          <div class="g2s" style=${{marginBottom:10}}>
+            <input value=${newDoc.nama} onChange=${e=>setNewDoc({...newDoc,nama:e.target.value})} placeholder="Nama dokumen *" class=${INP}/>
+            <input value=${newDoc.link} onChange=${e=>setNewDoc({...newDoc,link:e.target.value})} placeholder="URL / Link Google Drive" class=${INP}/>
+          </div>
+          <input value=${newDoc.catatan} onChange=${e=>setNewDoc({...newDoc,catatan:e.target.value})} placeholder="Keterangan" class=${INP} style=${{marginBottom:10}}/>
+          <div style=${{display:"flex",gap:8}}>
+            <button onClick=${()=>{
+              if(!newDoc.nama.trim()){alert("Nama wajib diisi!");return;}
+              const nd=Object.assign({id:Date.now()},newDoc);
+              const ndd=[...dokumen,nd];
+              setDokumen(ndd);
+              addLog(role,"📁","Dokumen ditambahkan",newDoc.nama,undefined,undefined,ndd);
+              setNewDoc({nama:"",link:"",catatan:""});
+              setShowAddDoc(false);
+            }} style=${{background:"#16A34A",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:13,cursor:"pointer",fontWeight:600}}>Simpan</button>
+            <button onClick=${()=>{setShowAddDoc(false);setNewDoc({nama:"",link:"",catatan:""});}} style=${{background:"none",color:"#9CA3AF",border:"none",padding:"8px",fontSize:13,cursor:"pointer"}}>Batal</button>
+          </div>
+        </div>`:null}
+        <div class="g3s">
+          ${dokumen.map(d=>html`<div key=${d.id} style=${{...CARD,display:"flex",flexDirection:"column",gap:10}}>
+            <div style=${{display:"flex",alignItems:"flex-start",gap:10}}>
+              <div style=${{flex:1,minWidth:0}}>
+                <div style=${{fontWeight:600,fontSize:13,color:"#1F2937"}}>${d.nama}</div>
+                ${d.catatan?html`<div style=${{fontSize:11,color:"#9CA3AF",marginTop:2}}>${d.catatan}</div>`:null}
+              </div>
+              ${canEdit?html`<button onClick=${()=>delDoc(d)} style=${{color:"#D1D5DB",background:"none",border:"none",cursor:"pointer",fontSize:16,flexShrink:0}}>x</button>`:null}
+            </div>
+            ${editDocId===d.id?html`<div class="s3">
+              <input value=${editDocVal} onInput=${e=>setEditDocVal(e.target.value)} placeholder="Tempel URL link di sini..." class=${INP}/>
+              <div style=${{display:"flex",gap:6}}>
+                <button onClick=${()=>saveDocLink(d)} style=${{background:"#16A34A",color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",fontSize:12,cursor:"pointer",fontWeight:600}}>Simpan</button>
+                <button onClick=${()=>{setEditDocId(null);setEditDocVal("");}} style=${{background:"none",color:"#9CA3AF",border:"none",fontSize:12,cursor:"pointer",padding:"6px 8px"}}>Batal</button>
+              </div>
+            </div>`:html`<div class="s3">
+              <div style=${{fontSize:10,color:"#9CA3AF",background:"#F9FAFB",borderRadius:6,padding:"7px 10px",fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",border:"1px solid #F3F4F6"}}>
+                ${d.link?d.link:"(Link belum diisi)"}
+              </div>
+              <div style=${{display:"flex",gap:6,flexWrap:"wrap"}}>
+                ${d.link?html`<a href=${d.link} target="_blank" rel="noreferrer" style=${{flex:1,textAlign:"center",fontSize:12,background:"#1A73E8",color:"#fff",borderRadius:8,padding:"7px 4px",textDecoration:"none",fontWeight:600,minWidth:60}}>Buka</a>`:null}
+                ${d.link?html`<button onClick=${()=>{try{navigator.clipboard.writeText(d.link);alert("Link disalin!");}catch(e){alert("Salin manual: "+d.link);}}} style=${{fontSize:12,border:"1px solid #E5E7EB",borderRadius:8,padding:"7px 10px",cursor:"pointer",background:"#fff",color:"#374151"}}>Salin</button>`:null}
+                ${canEdit?html`<button onClick=${()=>startEditDoc(d)} style=${{fontSize:12,border:"1px solid #E5E7EB",borderRadius:8,padding:"7px 10px",cursor:"pointer",background:"#fff",color:"#374151",flex:d.link?"0":"1"}}>${d.link?"Edit":"Isi Link"}</button>`:null}
+              </div>
+            </div>`}
+          </div>`)}
+        </div>
+        <div style=${{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:14,fontSize:12,color:"#92400E"}}>
+          <div style=${{fontWeight:700,marginBottom:6}}>Cara mengelola dokumen:</div>
+          <div>1. Klik "Upload File" - Google Drive terbuka - upload dokumen baru</div>
+          <div>2. Klik kanan file di Drive - "Bagikan" - salin link</div>
+          <div>3. Klik "Isi Link" pada kartu - tempel link - Simpan</div>
+        </div>
+      </div>`:null}
+
+      ${tab==="log"?html`<div class="s4">
+        <div style=${{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <h2 style=${{fontSize:18,fontWeight:700,margin:0}}>Log Aktivitas</h2>
+          <div style=${{display:"flex",gap:8,alignItems:"center"}}>
+            <span style=${{fontSize:11,color:"#9CA3AF",background:"#F3F4F6",borderRadius:999,padding:"3px 10px"}}>${log.length} entri</span>
+            ${canEdit?html`<button onClick=${()=>{if(window.confirm("Reset log?"))setLog(INIT_LOG);}} style=${{fontSize:11,border:"1px solid #FEE2E2",color:"#DC2626",background:"#FEF2F2",borderRadius:8,padding:"4px 10px",cursor:"pointer"}}>Reset</button>`:null}
+          </div>
+        </div>
+        <div style=${{...CARD,padding:0,overflow:"hidden"}}>
+          ${log.map((l,i)=>html`<div key=${l.id} style=${{display:"flex",alignItems:"flex-start",gap:12,padding:"14px 20px",borderBottom:i<log.length-1?"1px solid #F9FAFB":"none"}}>
+            <div style=${{width:36,height:36,borderRadius:"50%",background:"hsl("+(l.user.charCodeAt(0)*37)%360+",50%,88%)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>${l.icon||"?"}</div>
+            <div style=${{flex:1,minWidth:0}}>
+              <div style=${{fontWeight:700,fontSize:13,color:"#1F2937"}}>${l.action}</div>
+              ${l.detail?html`<div style=${{fontSize:11,color:"#4B5563",marginTop:3,padding:"4px 8px",background:"#F9FAFB",borderRadius:5}}>${l.detail}</div>`:null}
+              <div style=${{fontSize:10,color:"#9CA3AF",marginTop:4}}>${l.user+" - "+l.time}</div>
+            </div>
+          </div>`)}
+        </div>
+      </div>`:null}
+
+    </div>
+
+    <!-- MODALS -->
+    ${coktasModal?html`<${CoktasModal} p=${coktasModal} onConfirm=${confirmCoktas} onCancel=${()=>setCoktasModal(null)}/>`:null}
+
+    ${batalConfirm?html`<${Modal} title="Batalkan Coktas?" onClose=${()=>setBatalConfirm(null)}>
+      <div style=${{textAlign:"center",padding:"8px 0 16px"}}>
+        <div style=${{fontSize:40,marginBottom:10}}>!</div>
+        <p style=${{fontWeight:700,fontSize:15,marginBottom:6,margin:"0 0 6px 0"}}>Batalkan status coktas?</p>
+        <p style=${{color:"#6B7280",fontSize:13,marginBottom:20,margin:"0 0 20px 0"}}>${batalConfirm.nama}</p>
+        <div style=${{display:"flex",gap:10}}>
+          <button onClick=${()=>konfBatal(batalConfirm)} style=${{flex:1,background:"#DC2626",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:13,fontWeight:700,cursor:"pointer"}}>Ya, Batalkan</button>
+          <button onClick=${()=>setBatalConfirm(null)} style=${{flex:1,border:"1px solid #E5E7EB",borderRadius:10,padding:"10px",fontSize:13,cursor:"pointer",background:"#fff",color:"#6B7280"}}>Kembali</button>
+        </div>
+      </div>
+    </${Modal}>`:null}
+
+    ${editP?html`<${Modal} title="Edit Data Pemilih" onClose=${()=>setEditP(null)}>
+      <div class="g2s" style=${{fontSize:13,marginBottom:16}}>
+        <div><label style=${{fontSize:11,fontWeight:600,color:"#6B7280",display:"block",marginBottom:4}}>Tim</label>
+          <select value=${editP.tim} onChange=${e=>setEditP({...editP,tim:e.target.value})} class=${INP}><option>TIM 1</option><option>TIM 2</option><option>TIM 3</option></select></div>
+        <div><label style=${{fontSize:11,fontWeight:600,color:"#6B7280",display:"block",marginBottom:4}}>Kelurahan</label>
+          <select value=${editP.kel} onChange=${e=>setEditP({...editP,kel:e.target.value})} class=${INP}>${KELS.map(k=>html`<option key=${k}>${k}</option>`)}</select></div>
+        ${[{l:"NIK",k:"nik"},{l:"Nama",k:"nama",f:true},{l:"TTL",k:"ttl",f:true},{l:"Alamat",k:"alamat",f:true},{l:"Petunjuk",k:"petunjuk",f:true}].map(fld=>html`
+          <div key=${fld.k} class=${fld.f?"sp2":""}>
+            <label style=${{fontSize:11,fontWeight:600,color:"#6B7280",display:"block",marginBottom:4}}>${fld.l}</label>
+            <input value=${editP[fld.k]||""} onChange=${e=>setEditP({...editP,[fld.k]:e.target.value})} class=${INP}/>
+          </div>`)}
+        ${[{l:"JK",k:"jk",o:["L","P"]},{l:"Kawin",k:"kawin",o:["Belum","Sudah"]},{l:"E-KTP",k:"ektp",o:["Belum","Sudah"]}].map(fld=>html`
+          <div key=${fld.k}><label style=${{fontSize:11,fontWeight:600,color:"#6B7280",display:"block",marginBottom:4}}>${fld.l}</label>
+            <select value=${editP[fld.k]} onChange=${e=>setEditP({...editP,[fld.k]:e.target.value})} class=${INP}>${fld.o.map(o=>html`<option key=${o}>${o}</option>`)}</select></div>`)}
+        <div class="sp2"><label style=${{fontSize:11,fontWeight:600,color:"#6B7280",display:"block",marginBottom:4}}>Keterangan</label>
+          <select value=${editP.ket} onChange=${e=>setEditP({...editP,ket:e.target.value})} class=${INP}>${KET_OPTS.map(k=>html`<option key=${k}>${k}</option>`)}</select></div>
+        ${editP.done?html`<div class="sp2" style=${{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:8,padding:10}}>
+          <p style=${{fontSize:11,fontWeight:600,color:"#16A34A",margin:"0 0 6px 0"}}>Dicoktas oleh ${editP.coktasByPetugas}</p>
+          <label style=${{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:4}}>Edit Catatan Coktas</label>
+          <textarea value=${editP.coktasCatatan||""} onChange=${e=>setEditP({...editP,coktasCatatan:e.target.value})} rows="2" class=${INP}/>
+        </div>`:null}
+      </div>
+      <div style=${{display:"flex",gap:10}}>
+        <button onClick=${()=>savePEdit(editP)} style=${{flex:1,background:"#991B1B",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:13,fontWeight:700,cursor:"pointer"}}>Simpan</button>
+        <button onClick=${()=>setEditP(null)} style=${{padding:"10px 18px",border:"1px solid #E5E7EB",borderRadius:10,fontSize:13,cursor:"pointer",background:"#fff",color:"#6B7280"}}>Batal</button>
+      </div>
+    </${Modal}>`:null}
+
+    ${delConfirm?html`<${Modal} title="Konfirmasi Hapus" onClose=${()=>setDelConfirm(null)}>
+      <div style=${{textAlign:"center",padding:"8px 0 16px"}}>
+        <p style=${{fontWeight:700,fontSize:15,marginBottom:6,margin:"0 0 6px 0"}}>Hapus Data Pemilih?</p>
+        <p style=${{color:"#6B7280",fontSize:13,marginBottom:20,margin:"0 0 20px 0"}}>${(pemilih.find(p=>p.id===delConfirm)||{nama:""}).nama}</p>
+        <div style=${{display:"flex",gap:10}}>
+          <button onClick=${()=>delPemilih(delConfirm)} style=${{flex:1,background:"#DC2626",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:13,fontWeight:700,cursor:"pointer"}}>Ya, Hapus</button>
+          <button onClick=${()=>setDelConfirm(null)} style=${{flex:1,border:"1px solid #E5E7EB",borderRadius:10,padding:"10px",fontSize:13,cursor:"pointer",background:"#fff",color:"#6B7280"}}>Batal</button>
+        </div>
+      </div>
+    </${Modal}>`:null}
+
+    <div style=${{textAlign:"center",padding:"14px",fontSize:11,color:"#9CA3AF",borderTop:"1px solid #E5E7EB",marginTop:32,background:"#fff"}}>
+      KPU Kota Probolinggo - CPNS 2024 Angkatan V - Coktas PDPB Semester II - Kelompok A - Auto-save
+    </div>
+  </div>`;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+</script>
+</body>
+</html>
